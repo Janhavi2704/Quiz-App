@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz App</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #e9ecef;
+        }
+
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        .quiz-container h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        .btn-container {
+            margin-top: 20px;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .btn.correct {
+            background-color: #28a745;
+            color: #fff;
+        }
+
+        .btn.wrong {
+            background-color: #dc3545;
+            color: #fff;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        #score-container h2 {
+            color: #333;
+        }
+
+        #question-number {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="quiz-container">
+        <h1>Quiz App</h1>
+        <div id="question-container" class="hide">
+            <div id="question-number"></div>
+            <div id="question">Question text</div>
+            <div id="answer-buttons" class="btn-container"></div>
+        </div>
+        <div class="controls">
+            <button id="next-btn" class="btn hide">Next</button>
+        </div>
+        <div id="score-container" class="hide">
+            <h2>Your Score: <span id="score"></span></h2>
+            <button id="restart-btn" class="btn">Restart</button>
+        </div>
+    </div>
+    <script>
+        const questions = [
+            {
+                question: "What is the capital of France?",
+                answers: [
+                    { text: "Berlin", correct: false },
+                    { text: "Madrid", correct: false },
+                    { text: "Paris", correct: true },
+                    { text: "Rome", correct: false }
+                ]
+            },
+            {
+                question: "Who wrote 'To Kill a Mockingbird'?",
+                answers: [
+                    { text: "Harper Lee", correct: true },
+                    { text: "Jane Austen", correct: false },
+                    { text: "Mark Twain", correct: false },
+                    { text: "Charles Dickens", correct: false }
+                ]
+            },
+            {
+                question: "What is the smallest planet in our solar system?",
+                answers: [
+                    { text: "Earth", correct: false },
+                    { text: "Mars", correct: false },
+                    { text: "Mercury", correct: true },
+                    { text: "Venus", correct: false }
+                ]
+            },
+            {
+                question: "Which element has the chemical symbol 'O'?",
+                answers: [
+                    { text: "Gold", correct: false },
+                    { text: "Oxygen", correct: true },
+                    { text: "Silver", correct: false },
+                    { text: "Iron", correct: false }
+                ]
+            },
+            {
+                question: "What year did World War I begin?",
+                answers: [
+                    { text: "1914", correct: true },
+                    { text: "1918", correct: false },
+                    { text: "1939", correct: false },
+                    { text: "1945", correct: false }
+                ]
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+
+        const questionContainerElement = document.getElementById('question-container');
+        const questionElement = document.getElementById('question');
+        const answerButtonsElement = document.getElementById('answer-buttons');
+        const nextButton = document.getElementById('next-btn');
+        const scoreContainerElement = document.getElementById('score-container');
+        const scoreElement = document.getElementById('score');
+        const restartButton = document.getElementById('restart-btn');
+        const questionNumberElement = document.getElementById('question-number');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            startQuiz();
+        });
+
+        function startQuiz() {
+            currentQuestionIndex = 0;
+            score = 0;
+            scoreContainerElement.classList.add('hide');
+            nextButton.classList.add('hide');
+            questionContainerElement.classList.remove('hide');
+            showQuestion(questions[currentQuestionIndex]);
+        }
+
+        function showQuestion(question) {
+            resetState();
+            questionNumberElement.textContent = `Question ${currentQuestionIndex + 1} of ${questions.length}`;
+            questionElement.textContent = question.question;
+            const options = ['A', 'B', 'C', 'D'];
+            question.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.textContent = `${options[index]}. ${answer.text}`;
+                button.classList.add('btn');
+                button.addEventListener('click', () => selectAnswer(button, answer));
+                answerButtonsElement.appendChild(button);
+            });
+        }
+
+        function resetState() {
+            nextButton.classList.add('hide');
+            while (answerButtonsElement.firstChild) {
+                answerButtonsElement.removeChild(answerButtonsElement.firstChild);
+            }
+        }
+
+        function selectAnswer(button, answer) {
+            if (answer.correct) {
+                button.classList.add('correct');
+                score++;
+            } else {
+                button.classList.add('wrong');
+            }
+            Array.from(answerButtonsElement.children).forEach(btn => {
+                btn.disabled = true;
+                if (btn !== button && questions[currentQuestionIndex].answers.find(a => a.text === btn.textContent.slice(3)).correct) {
+                    btn.classList.add('correct');
+                }
+            });
+            nextButton.classList.remove('hide');
+        }
+
+        nextButton.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                showQuestion(questions[currentQuestionIndex]);
+            } else {
+                showScore();
+            }
+        });
+
+        function showScore() {
+            questionContainerElement.classList.add('hide');
+            scoreContainerElement.classList.remove('hide');
+            scoreElement.textContent = `${score} out of ${questions.length}`;
+        }
+
+        restartButton.addEventListener('click', startQuiz);
+
+    </script>
+</body>
+
+</html>
